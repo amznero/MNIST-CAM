@@ -13,10 +13,11 @@ class LeNet(nn.Module):
 
     def forward(self, x):
         out = F.relu(self.conv1(x))
-        out = F.avg_pool2d(out, kernel_size=2, stride=2)
+        out = F.max_pool2d(out, kernel_size=2)
         out = F.relu(self.conv2(out))
-        out = F.avg_pool2d(out, kernel_size=2, stride=2)
-        out = out.view(-1, 16*4*4)
+        out = F.max_pool2d(out, kernel_size=2)
+        print(out.size())
+        out = out.view(out.size(0), -1)
         out = F.relu(self.fc1(out))
         out = F.relu(self.fc2(out))
 

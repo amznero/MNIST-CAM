@@ -1,7 +1,7 @@
 import torch
 import argparse
 import torch.nn as nn
-from models import LeNet
+from models import LeNet, Net
 import torch.optim as optim
 import torch.nn.functional as F
 from torchvision import datasets, transforms
@@ -14,7 +14,7 @@ def train(args, model, train_loader, optimizer, epoch):
         target = torch.autograd.Variable(target)
         optimizer.zero_grad()
         output = model(data)
-        loss = F.nll_loss(output, target)
+        loss = F.cross_entropy(output, target)
         loss.backward()
         optimizer.step()
         if batch_idx % args.log_interval == 0:
@@ -33,7 +33,7 @@ def test(args, model, test_loader):
             target = torch.autograd.Variable(target, volatile=True)
 
             output = model(data)
-            test_loss += F.nll_loss(output, target, size_average=False).item() # sum up batch loss
+            test_loss += F.cross_entropy(output, target, size_average=False).item() # sum up batch loss
             pred = output.max(1, keepdim=True)[1] # get the index of the max log-probability
             correct += pred.eq(target.view_as(pred)).sum().item()
 
