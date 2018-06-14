@@ -50,29 +50,35 @@ def test(args, model, test_loader):
 
 def cam(model, epoch):
     model.eval()
+    images_prefix = 'imgs/{:d}.jpg'
+    global feature_blob
+    para = list(model.parameters())[-2][0:1]
+    para = para.data.cpu().numpy()
+
     with torch.no_grad():
-        img_0 = Image.open('imgs/0.jpg')
-        transform=transforms.Compose([
-                               transforms.ToTensor(),
-                               transforms.Normalize((0.1307,), (0.3081,))
-                                    ])
-        tensor_0 = transform(img_0)
-        tensor_0 = tensor_0.view(1, 1, 28, 28)
-        output_0 = model(tensor_0)
-        para = list(model.parameters())[-2][0:1]
-        para = para.data.cpu().numpy()
-        global feature_blob
-        cam_feat = feature_blob[0].view(16, -1).data.cpu().numpy()
-        cam = np.matmul(para, cam_feat)[0].reshape(8, 8)
-        cam = cam - np.min(cam)
-        cam_img = cam / np.max(cam)
-        cam_img = np.uint8(255 * cam_img)
-        output_cam = cv2.resize(cam_img, (28, 28))
-        heatmap = cv2.applyColorMap(output_cam, cv2.COLORMAP_JET)
-        img = cv2.imread('imgs/0.jpg')
-        save_img = heatmap*0.3 + img*0.5
-        save_img = cv2.resize(save_img, (224, 224))
-        cv2.imwrite('result/cam_{}.jpg'.format(epoch), save_img)
+        for img in xrange(10):
+            image = Image.open(images_prefix.format(img))
+            transform=transforms.Compose([
+                                   transforms.ToTensor(),
+                                   transforms.Normalize((0.1307,), (0.3081,))
+                                        ])
+
+            tensor = transform(image)
+            tensor = tensor.view(1, 1, 28, 28)
+            model(tensor)
+
+            cam_feat = feature_blob[0].view(16, -1).data.cpu().numpy()
+            cam = np.matmul(para, cam_feat)[0].reshape(8, 8)
+            cam = cam - np.min(cam)
+            cam_img = cam / np.max(cam)
+            cam_img = np.uint8(255 * cam_img)
+            output_cam = cv2.resize(cam_img, (28, 28))
+            heatmap = cv2.applyColorMap(output_cam, cv2.COLORMAP_JET)
+            image = cv2.imread(images_prefix.format(img))
+            save_img = heatmap*0.3 + image*0.5
+            save_img = cv2.resize(save_img, (224, 224))
+            cv2.imwrite('result/cam_{}_{}.jpg'.format(img, epoch), save_img)
+
 
 
 def main():
