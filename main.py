@@ -67,9 +67,9 @@ def cam(model, epoch):
             tensor = tensor.view(1, 1, 28, 28)
             model(tensor)
 
-            cam_feat = feature_blob[0].view(16, -1).data.cpu().numpy()
+            cam_feat = feature_blob[0].view(16, -1).data.cpu().numpy() # shape [16, 8*8] 16 channels
             # print(cam_feat.shape)
-            tmp = para[img:img+1]
+            tmp = para[img:img+1] # shape [10, 16]
             cam = np.matmul(para, cam_feat)[0].reshape(8, 8)
             # print(cam/shape)
             cam = cam - np.min(cam)
