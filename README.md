@@ -1,4 +1,4 @@
-# Mnist-CAM
+# MNIST-CAM
 Visulisation what does network learn by CAM.
 
 # Example of MNIST
