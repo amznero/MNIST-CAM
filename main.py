@@ -52,9 +52,9 @@ def cam(model, epoch):
     model.eval()
     images_prefix = 'imgs/{:d}.jpg'
     global feature_blob
-    para = list(model.parameters())[-2][0:1]
-    para = para.data.cpu().numpy()
-
+    para = list(model.parameters())[-2]
+    # para = para.data.cpu().numpy()
+    print(para.shape)
     with torch.no_grad():
         for img in xrange(10):
             image = Image.open(images_prefix.format(img))
@@ -68,7 +68,10 @@ def cam(model, epoch):
             model(tensor)
 
             cam_feat = feature_blob[0].view(16, -1).data.cpu().numpy()
+            # print(cam_feat.shape)
+            tmp = para[img:img+1]
             cam = np.matmul(para, cam_feat)[0].reshape(8, 8)
+            # print(cam/shape)
             cam = cam - np.min(cam)
             cam_img = cam / np.max(cam)
             cam_img = np.uint8(255 * cam_img)
