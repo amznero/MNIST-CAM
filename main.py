@@ -1,5 +1,6 @@
 import cv2
 import torch
+import imageio
 import argparse
 import numpy as np
 import torch.nn as nn
@@ -39,7 +40,7 @@ def test(args, model, test_loader):
             # target = torch.autograd.Variable(target, volatile=True)
 
             output = model(data)
-            test_loss += F.cross_entropy(output, target, size_average=False).item() # sum up batch loss
+            test_loss += F.cross_entropy(output, target, reduction='sum').item() # sum up batch loss
             pred = output.max(1, keepdim=True)[1] # get the index of the max log-probability
             correct += pred.eq(target.view_as(pred)).sum().item()
 
@@ -53,10 +54,9 @@ def cam(model, epoch):
     images_prefix = 'imgs/{:d}.jpg'
     global feature_blob
     para = list(model.parameters())[-2]
-    # para = para.data.cpu().numpy()
-    print(para.shape)
+    para = para.cpu().detach().numpy()
     with torch.no_grad():
-        for img in xrange(10):
+        for img in range(10):
             image = Image.open(images_prefix.format(img))
             transform=transforms.Compose([
                                    transforms.ToTensor(),
@@ -65,13 +65,17 @@ def cam(model, epoch):
 
             tensor = transform(image)
             tensor = tensor.view(1, 1, 28, 28)
-            model(tensor)
 
-            cam_feat = feature_blob[0].view(16, -1).data.cpu().numpy() # shape [16, 8*8] 16 channels
-            # print(cam_feat.shape)
-            tmp = para[img:img+1] # shape [10, 16]
-            cam = np.matmul(para, cam_feat)[0].reshape(8, 8)
-            # print(cam/shape)
+            with torch.no_grad():
+                output = model(tensor)
+
+            prob = F.softmax(output, dim=-1)
+            prob = prob.cpu().detach().numpy()
+
+
+            cam_feat = feature_blob[0].view(16, -1).cpu().detach().numpy() # shape [16, 8*8] 16 channels
+            para_k = para[img:img+1] # shape [1, 16]
+            cam = np.matmul(para_k, cam_feat)[0].reshape(8, 8)
             cam = cam - np.min(cam)
             cam_img = cam / np.max(cam)
             cam_img = np.uint8(255 * cam_img)
@@ -80,6 +84,10 @@ def cam(model, epoch):
             image = cv2.imread(images_prefix.format(img))
             save_img = heatmap*0.3 + image*0.5
             save_img = cv2.resize(save_img, (224, 224))
+            # draw prob
+            cv2.putText(save_img, '{} Prob: {}'.format(img, prob[0][img]), (0, 30), cv2.FONT_HERSHEY_COMPLEX, 0.5, (0, 255, 255), 2)
+
+
             cv2.imwrite('result/cam_{}_{}.jpg'.format(img, epoch), save_img)
 
 
@@ -138,7 +146,18 @@ def main():
         train(args, model, train_loader, optimizer, epoch)
         cam(model, epoch)
         test(args, model, test_loader)
+    
+    generate_gif()
 
+    # torch.save(model.module.state_dict(), 'ckpt.pth.tar')
+
+def generate_gif():
+    img_name = 'result/cam_{}_{}.jpg'
+    for idx in range(10):
+        imgs = []
+        for epoch in range(1, 11):
+            imgs.append(imageio.imread(img_name.format(idx, epoch)))
+        imageio.mimsave('gifs/cam_{}.gif'.format(idx), imgs)      
 
 if __name__ == '__main__':
     main()
