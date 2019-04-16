@@ -1,7 +1,18 @@
 # MNIST-CAM
 Visulisation what does network learn by CAM.
 
-# Example of MNIST
+## Imgs
+![0](result/cam_0_10.jpg)
+![1](result/cam_1_10.jpg)
+![2](result/cam_2_10.jpg)
+![3](result/cam_3_10.jpg)
+![4](result/cam_4_10.jpg)
+![5](result/cam_5_10.jpg)
+![6](result/cam_6_10.jpg)
+![7](result/cam_7_10.jpg)
+![8](result/cam_8_10.jpg)
+![9](result/cam_9_10.jpg)
+## gifs
 ![0](gifs/cam_0.gif)
 ![1](gifs/cam_1.gif)
 ![2](gifs/cam_2.gif)
