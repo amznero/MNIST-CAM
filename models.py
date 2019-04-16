@@ -15,7 +15,7 @@ class LeNet(nn.Module):
         out = F.relu(self.conv1(x))
         out = F.max_pool2d(out, kernel_size=2)
         out = F.relu(self.conv2(out))
-        out = F.relu(F.avg_pool2d(out, kernel_size=8))
+        out = F.avg_pool2d(out, kernel_size=8)
         # out = F.avg_pool2d(out, kernel_size=4)
         out = out.view(out.size(0), -1)
         # out = F.relu(self.fc1(out))
